@@ -27,12 +27,8 @@
 #include "sx126x-board.h"
 
 #include "Arduino.h"
-<<<<<<< HEAD
-
-=======
 // #include "RiggerAssist.h"
 //#define USE_TCXO                //Use internal radio clk - comment out for old radio model (drf1262G)
->>>>>>> develop
 /*!
  * \brief Radio registers definition
  */
@@ -89,11 +85,8 @@ void SX126xProcessIrqs( void );
 
 void SX126xInit( DioIrqHandler dioIrq )
 {
-<<<<<<< HEAD
-=======
     CalibrationParams_t calibParam;
 
->>>>>>> develop
     SX126xReset( );
 
     SX126xIoIrqInit( dioIrq );
@@ -101,18 +94,6 @@ void SX126xInit( DioIrqHandler dioIrq )
     SX126xWakeup( );
     SX126xSetStandby( STDBY_RC );
 
-<<<<<<< HEAD
-#ifdef USE_TCXO
-    CalibrationParams_t calibParam;
-
-    SX126xSetDio3AsTcxoCtrl( TCXO_CTRL_1_7V, SX126xGetBoardTcxoWakeupTime( ) << 6 ); // convert from ms to SX126x time base
-    calibParam.Value = 0x7F;
-    SX126xCalibrate( calibParam );
-#endif
-
-    SX126xSetDio2AsRfSwitchCtrl( true );
-    OperatingMode = MODE_STDBY_RC;
-=======
 #ifdef USE_TCXO 
     RadioStatus_t status;
 
@@ -149,7 +130,6 @@ void SX126xInit( DioIrqHandler dioIrq )
     OperatingMode = MODE_STDBY_XOSC;
     
     
->>>>>>> develop
 }
 
 RadioOperatingModes_t SX126xGetOperatingMode( void )
@@ -381,10 +361,7 @@ void SX126xSetRegulatorMode( RadioRegulatorMode_t mode )
 void SX126xCalibrate( CalibrationParams_t calibParam )
 {
     SX126xWriteCommand( RADIO_CALIBRATE, ( uint8_t* )&calibParam, 1 );
-<<<<<<< HEAD
-=======
     Serial.println("end of calibrate runction");
->>>>>>> develop
 }
 
 void SX126xCalibrateImage( uint32_t freq )
@@ -465,10 +442,7 @@ void SX126xSetDio2AsRfSwitchCtrl( uint8_t enable )
 void SX126xSetDio3AsTcxoCtrl( RadioTcxoCtrlVoltage_t tcxoVoltage, uint32_t timeout )
 {
     uint8_t buf[4];
-<<<<<<< HEAD
-=======
     
->>>>>>> develop
 
     buf[0] = tcxoVoltage & 0x07;
     buf[1] = ( uint8_t )( ( timeout >> 16 ) & 0xFF );
@@ -476,10 +450,7 @@ void SX126xSetDio3AsTcxoCtrl( RadioTcxoCtrlVoltage_t tcxoVoltage, uint32_t timeo
     buf[3] = ( uint8_t )( timeout & 0xFF );
 
     SX126xWriteCommand( RADIO_SET_TCXOMODE, buf, 4 );
-<<<<<<< HEAD
-=======
     Serial.println("Inside set DIO");
->>>>>>> develop
 }
 
 void SX126xSetRfFrequency( uint32_t frequency )
@@ -765,14 +736,9 @@ RadioError_t SX126xGetDeviceErrors( void )
 
 void SX126xClearDeviceErrors( void )
 {
-<<<<<<< HEAD
-    uint8_t buf[2] = { 0x00, 0x00 };
-    SX126xWriteCommand( RADIO_CLR_ERROR, buf, 2 );
-=======
     //Buffer was originall just : 0x00, 0x00 but forums suggested we need 0x07 to clear all flags
     uint8_t buf[3] = { 0x07, 0x00, 0x00 };
     SX126xWriteCommand( RADIO_CLR_ERROR, buf, 3 );
->>>>>>> develop
 }
 
 void SX126xClearIrqStatus( uint16_t irq )

@@ -112,14 +112,6 @@ const unsigned short black[9600] PROGMEM={
       void ShowBackgroundImg();
       void DispLORAIndicator();
       void PlayMarkerAnimation();
-<<<<<<< HEAD
-      void InitLCD();
-      void AmbientLightAdjust();
-      void SetupPWMdimming();
-      void moveMarker(float newVal);
-      void radioStrength(int str);
-      void capacity(int cap);
-=======
       void AmbientLightAdjust();
       void moveMarker(float newVal);
       void radioStrength(int str);
@@ -128,15 +120,10 @@ const unsigned short black[9600] PROGMEM={
       void NoSignal();
       void NotCalibrated();
       void battBars(int battLvl);
->>>>>>> develop
 
     private:
       void LEDInterrupt();
       void blueLED(bool state);
-<<<<<<< HEAD
-      void radioCh(int ch);
-=======
->>>>>>> develop
       void load(float cap) ;
       void lowBatt(bool on);
       void drawText(char *text, uint16_t txtSize, uint16_t x, uint16_t y, uint16_t color);

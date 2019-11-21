@@ -8,8 +8,6 @@ LORA. */
 #include "sx126x-board.h"
 #include "sx126x.h"
 
-<<<<<<< HEAD
-=======
 #define VERSION         1.0               // Software version
 #define PACKET_SIZE     4
 #define RA_ID           67                // Rigger Assist unique ID
@@ -21,7 +19,6 @@ LORA. */
 
 
 
->>>>>>> develop
 //**********************LORA DEFINITIONS*************************
 
 #define USE_MODEM_LORA
@@ -62,9 +59,6 @@ LORA. */
 #define LED_N               27                        // Blue LED -ve
 #define LED_P               26                        // Blue LED +ve
 
-<<<<<<< HEAD
-//#define DEG_TO_RAD          0.0174533
-=======
 //These are the capacitove discharge times for high and low light levels, may need tweaking.
 #define HIGH_LIGHT_LEVEL    20000
 #define LOW_LIGHT_LEVEL     40000
@@ -99,22 +93,10 @@ struct rawOrient {
   float avgAngle;
 };
 extern struct rawOrient orient;
->>>>>>> develop
 
 void CalibrateIMU_ISR();
 void BattCharging_ISR();
 void BattChargingFin_ISR();
-<<<<<<< HEAD
-
-float ReadBattVoltage();
-void CheckSigStrength();
-void GetOrientationOffsets();
-void updateOrientation();
-void sendIMUDataPacket();
-
-void CalibrateSX1272();
-void InitRadioEvents();
-=======
 void onTimer();
 void Task1( void * parameter );
 void CheckCalButtonState(uint8_t reading);
@@ -135,18 +117,12 @@ void InitGPIO();
 void CalibrateSX1272();
 void InitRadioEvents();
 void flashLED(uint8_t states);
->>>>>>> develop
 void Send();
 void OnRxDone( uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr );
 void OnTxDone(void);
 void OnTxTimeout(void);
-<<<<<<< HEAD
-uint8_t packSendBits(float inputData);
-float rxDataToFloat(uint8_t rxData);
-=======
 uint8_t PackSendBits(float inputData);
 void AssignTxBufferContents();
 float rxDataToFloat(uint8_t rxData);
 uint8_t chksum8(uint8_t input, size_t len);
 void OutputIMUData(bool outputMode);
->>>>>>> develop

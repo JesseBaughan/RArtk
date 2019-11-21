@@ -301,13 +301,9 @@ class DPEng_ICM20948 : public Adafruit_Sensor
     bool getEvent        ( sensors_event_t* accel, sensors_event_t* gyro, sensors_event_t* mag );
     void getSensor       ( sensor_t* accel, sensor_t* gyro, sensor_t* mag );
     void standby         ( boolean standby );
-<<<<<<< HEAD
-	void calibrateIMU	 (float * gyroBias, float * accelBias);
-=======
 	void getAccelGyroOffsets	 (float * gyroBias, float * accelBias);
 	void getMagBaseValues		 (float * destination);
 	void magCal(float * dest1, float * dest2);
->>>>>>> develop
 
     /*! Raw accelerometer values from last sucsessful sensor read */
     icm20948RawData_t accel_raw;

@@ -508,11 +508,7 @@ void RadioInit( RadioEvents_t *events )
   SX126xSetDioIrqParams( IRQ_RADIO_ALL, IRQ_RADIO_ALL, IRQ_RADIO_NONE, IRQ_RADIO_NONE );
   //SX126xSetDioIrqParams( IRQ_TX_DONE | IRQ_RX_TX_TIMEOUT, IRQ_TX_DONE | IRQ_RX_TX_TIMEOUT, IRQ_RADIO_NONE, IRQ_RADIO_NONE );
 
-<<<<<<< HEAD
-  SX126xSetDio2AsRfSwitchCtrl(true);
-=======
   // SX126xSetDio2AsRfSwitchCtrl(true);
->>>>>>> develop
   // Initialize driver timeout timers
   //TimerInit( &TxTimeoutTimer, RadioOnTxTimeoutIrq );
   //TimerInit( &RxTimeoutTimer, RadioOnRxTimeoutIrq );

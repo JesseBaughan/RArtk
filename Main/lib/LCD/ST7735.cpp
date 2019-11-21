@@ -5,14 +5,10 @@
 #include <Fonts/FreeSans9pt7b.h>
 #include <Adafruit_ST7735.h> // Hardware-specific library for
 #include "ST7735.h"    //Header file for all display setup
-<<<<<<< HEAD
-#include "RiggerAssist.h"
-=======
 // #include "RiggerAssist.h"
 
 #define LED_P 27
 #define LED_N 26
->>>>>>> develop
 
 //uninitalised pointers to SPI objects
 //SPIClass * vspi = NULL;
@@ -52,17 +48,6 @@ char s3[4];                       // Capacity clear buffer
 
 bool LoRaActive;                  // Flag for LoRa active
 
-<<<<<<< HEAD
-uint32_t startTime;
-uint32_t dur;
-
-//Constructor for the Display class
-ST7735::ST7735(){}
-
-void ST7735::begin(){
-  SetupPWMdimming();
-  InitLCD();
-=======
 
 //Constructor for the Display class
 ST7735::ST7735() {}
@@ -77,7 +62,6 @@ void ST7735::begin() {
   tft.setRotation(1);                             // NOTE: Adafruit_ST7735.cpp::setRotation modified so that case 1 sets MADCTL to B11100000 (mirror X,Y and row/col exchanged). See https://github.com/sumotoy/TFT_ST7735/blob/master/TFT_ST7735.cpp
   
   //Do startup display jobs
->>>>>>> develop
   ShowSplashScreen();
   ShowBackgroundImg();
   DispLORAIndicator();
@@ -90,24 +74,7 @@ void ST7735::blueLED(bool state) {
   digitalWrite(LED_N, !state);
 }
 
-<<<<<<< HEAD
-void ST7735::SetupPWMdimming(){
-  ledcSetup(PWM_CHANNEL, PWM_FREQUENCY, PWM_RESOLUTION);
-  ledcAttachPin(TFT_LED, PWM_CHANNEL);
-  ledcWrite(PWM_CHANNEL, TFT_MAX_BRIGHT);                   // LED brightness 0 to 255
-}
-
-void ST7735::InitLCD(){
-  tft.initR(INITR_MINI160x80);                    // initialize a ST7735S chip, mini display
-  // B10100000 in setRotation source for case 1 when using with internal mirror, else B11100000 with no internal mirror
-  //  writedata(B11100000); for setRotation(1) for pentaprism
-  tft.setRotation(1);                             // NOTE: Adafruit_ST7735.cpp::setRotation modified so that case 1 sets MADCTL to B11100000 (mirror X,Y and row/col exchanged). See https://github.com/sumotoy/TFT_ST7735/blob/master/TFT_ST7735.cpp
-}
-
-void ST7735::ShowSplashScreen(){  
-=======
 void ST7735::ShowSplashScreen() {  
->>>>>>> develop
   tft.fillScreen(ST77XX_BLACK); // Clear screen              
   tft.drawRGBBitmap(50, 10, splash, 57, 60);      // Draw DataHead splash
   tft.setFont(&FreeSansBold18pt7b);
@@ -115,11 +82,7 @@ void ST7735::ShowSplashScreen() {
   delay(1500);                                    // Time to show splash
 }
 
-<<<<<<< HEAD
-void ST7735::ShowBackgroundImg(){
-=======
 void ST7735::ShowBackgroundImg() {
->>>>>>> develop
   tft.fillScreen(ST77XX_BLACK);                   // Clear screen
   tft.fillScreen(ST77XX_BLACK);                   // Clear screen (needed twice for some reason...)
   tft.drawRGBBitmap(0, 20, black, 160, 80);       // Draw background
@@ -127,29 +90,17 @@ void ST7735::ShowBackgroundImg() {
 }
 
 void ST7735::DispLORAIndicator() {
-<<<<<<< HEAD
-  radioCh(-1);
-=======
   // radioCh(-1);
->>>>>>> develop
   if (LoRaActive) {
     radioStrength(-1);
   } else {
     radioStrength(3);                             // Not active
   }
-<<<<<<< HEAD
-  capacity(78);
-  load(6.8);
-}
-
-void ST7735::PlayMarkerAnimation(){
-=======
   // capacity(78);
   // load(6.8);
 }
 
 void ST7735::PlayMarkerAnimation() {
->>>>>>> develop
   moveMarker(7.00);
   delay(100);
   moveMarker(-7.00);
@@ -158,19 +109,6 @@ void ST7735::PlayMarkerAnimation() {
 }
 
 //Used for dimming of LCD based on ambient light
-<<<<<<< HEAD
-void ST7735::LEDInterrupt() {
-  dur = micros() - startTime;
-}
-
-// Show filled box for the selected channel, used in LORA indicator
-void ST7735::radioCh(int ch) {
-  tft.fillRect(0, 0, 4, 16, ST77XX_BLACK);            // clear old text
-  tft.drawRect(0, 0, 4, 4, ST77XX_GREEN);             // CH1
-  tft.drawRect(0, 6, 4, 4, ST77XX_GREEN);             // CH2
-  tft.drawRect(0, 12, 4, 4, ST77XX_GREEN);            // CH3
-  tft.fillRect(0, 6 * (ch - 1), 4, 4, ST77XX_CYAN);   // Selected channel
-=======
 
 
 // Show filled box for the selected channel, used in LORA indicator
@@ -192,7 +130,6 @@ void ST7735::battBars(int battLvl) {
     tft.fillRect(16, 2, 4, 4, ST77XX_GREEN);   
   }
   // tft.fillRect(0, 6 * (battLvl - 1), 4, 4, ST77XX_CYAN);   // Selected channel
->>>>>>> develop
 }
 
 // Render a signal strength icon from 0 - 10, need to set new threshold values
@@ -216,11 +153,7 @@ void ST7735::radioStrength(int str) {
   drawArc(-3, 3, 154, 11, 1.5, bot);
 }
 
-<<<<<<< HEAD
-//What is capacity??
-=======
 //What is capacity - batt percentage
->>>>>>> develop
 void ST7735::capacity(int cap) {
   tft.setFont(&FreeSans9pt7b);
   sprintf(s2, "%i%%", cap);
@@ -229,10 +162,7 @@ void ST7735::capacity(int cap) {
   tft.setFont(&FreeSansBold18pt7b);
 }
 
-<<<<<<< HEAD
-=======
 //Load what?
->>>>>>> develop
 void ST7735::load(float cap) {
   tft.setFont(&FreeSans9pt7b);
   cap = cap + 0.05;
@@ -267,40 +197,22 @@ void ST7735::moveMarker(float newVal) {
   if (newVal < 8 && newVal > -8) {
     int dur = 140;                        //duration in cycles = number of possible pixel points, max 138
     float num = newVal * 8.6;              // 7 on the screen is 60 degrees and ignore negatives
-<<<<<<< HEAD
-=======
-
->>>>>>> develop
     if (num != oldVal) {
       //Serial.println(String(num) + " " + String(oldVal));
       int newValPositive = abs(newVal * 10); //ABS only takes int vals so take abs as int then convert back to float
       float dispVal = (float)newValPositive / 10;          // round up
-<<<<<<< HEAD
-      Serial.print("\t");
-      Serial.print(newValPositive);
-      Serial.print("\t");
-      Serial.print(dispVal);
-=======
->>>>>>> develop
       
       if (dispVal >= 10) {
         sprintf(s1, "%1.0f", dispVal);
       } else {
         sprintf(s1, "%1.1f", dispVal);
       }
-<<<<<<< HEAD
-      tft.fillRect(55, 11, 49, 27, ST77XX_BLACK);         // clear old text
-      drawText(s1, 1, 55, 36, ST77XX_WHITE);
-      //Serial.println("Starting moving marker from " + String(oldVal) + " to " + String(newVal));
-      for (int pos=0; pos<dur; pos++){
-=======
 
       tft.fillRect(55, 11, 49, 27, ST77XX_BLACK);         // clear old text
       drawText(s1, 1, 55, 36, ST77XX_WHITE);
       
       //Serial.println("Starting moving marker from " + String(oldVal) + " to " + String(newVal));
       for (int pos=0; pos<dur; pos++) {
->>>>>>> develop
         drawMarker(easeInOutQuad(pos, oldVal, num - oldVal, dur), MARKERCOLOR);
         delay(2);               // Allow persistence to stop flicker
         //TODO: Flicker at the start and end of the movement....
@@ -348,8 +260,6 @@ void ST7735::drawMarker(int angle, int color) {
   oldy3 = y3;
 }
 
-<<<<<<< HEAD
-=======
 void ST7735::CalibrationInProgress() {
   sprintf(s1, "%s", "cal");
   tft.fillRect(55, 11, 49, 27, ST77XX_BLACK);         // clear old text
@@ -368,7 +278,6 @@ void ST7735::NoSignal() {
   drawText(s1, 1, 55, 36, ST77XX_WHITE);  
 }
 
->>>>>>> develop
 // quadratic easing in/out - acceleration until halfway, then deceleration
 // MIT.BSD license for this function, terms http://robertpenner.com/easing_terms_of_use.html
 // t: current time, b: beginning value, c: change in value, d: duration
@@ -387,30 +296,3 @@ void ST7735::drawArc (float start_angle, float end_angle, int x, int y, int r, i
 }
 
 
-<<<<<<< HEAD
-  // void Display::AmbientLightAdjust(){
-  // digitalWrite(LED_P, LOW);
-  // digitalWrite(LED_N, HIGH);
-  // startTime = micros();
-  // //timer = timerBegin(0, 80, true);
-  // pinMode(LED_N, INPUT);
-  // attachInterrupt(digitalPinToInterrupt(LED_N), LEDInterrupt, HIGH);
-  // delay(500);
-  // adjAmb = (14000 - dur) / 20;
-  // if (adjAmb < 10) {
-  //   adjAmb = 10;
-  // }
-  // if (adjAmb > 255) {
-  //   adjAmb = 255;
-  // }
-  // adjAmb = 255;
-  // ledcWrite(PWM_CHANNEL, adjAmb);                   // LED brightness 0 to 255
-
-  // Serial.print(dur);
-  // Serial.print(" ");
-  // Serial.println(adjAmb);
-  // pinMode(LED_N, OUTPUT);
-  // }
-
-=======
->>>>>>> develop

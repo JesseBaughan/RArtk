@@ -26,12 +26,8 @@
 #include "sx126x-board.h"
 #include "Arduino.h"
 
-<<<<<<< HEAD
-//TODO: Updates for TCXO
-=======
 //TODO: Updates for 
 
->>>>>>> develop
 
 //#include "board-config.h"
 #include <SPI.h>
@@ -46,11 +42,7 @@ void SX126xIoInit( void )
     pinMode(RADIO_DIO_1, INPUT);
     pinMode(RADIO_RESET,OUTPUT);
     digitalWrite(RADIO_RESET, HIGH);
-<<<<<<< HEAD
-
-=======
     
->>>>>>> develop
     hSPI.begin(RADIO_SCLK, RADIO_MISO, RADIO_MOSI, RADIO_NSS);
 
     /*
