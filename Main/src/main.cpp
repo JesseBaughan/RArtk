@@ -532,8 +532,8 @@ uint8_t chksum8(uint8_t number, size_t len) {
 }
 
 void UpdateDisplay(){
-  int8_t pitchRx = recvBuff.data[2];
-  float pitch = (float)pitchRx / 10;  //convert the data back to float
+  int8_t rxData = recvBuff.data[2];
+  float horizDist = (float)rxData / 10;  //convert the data back to float
 
   switch (recvBuff.data[1]) {
   case NOT_CAL:
@@ -548,7 +548,7 @@ void UpdateDisplay(){
     state = cal_complete;
     if (receiveReady) {
       receiveReady = false;
-      LCD.moveMarker(pitch);
+      LCD.moveMarker(horizDist);
       receiveReady = true;
     }   
     break;
