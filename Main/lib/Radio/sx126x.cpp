@@ -28,7 +28,7 @@
 
 #include "Arduino.h"
 // #include "RiggerAssist.h"
-//#define USE_TCXO                //Use internal radio clk - comment out for old radio model (drf1262G)
+#define USE_TCXO                //Use internal radio clk - comment out for old radio model (drf1262G)
 /*!
  * \brief Radio registers definition
  */

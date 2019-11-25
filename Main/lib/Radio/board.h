@@ -33,12 +33,12 @@
   #define RADIO_RESET                                 10
   #define RADIO_MOSI                                  13
   #define RADIO_MISO                                  12
-  #define RADIO_SCLK                                  4  //OLD BOARD
-  // #define RADIO_SCLK                                  14  //NEW 
+  // #define RADIO_SCLK                                  4  //OLD BOARD
+  #define RADIO_SCLK                                  14  //NEW 
   #define RADIO_NSS                                   15
   #define RADIO_BUSY                                  19                                
-  #define RADIO_DIO_1                                 14  //OLD
-  // #define RADIO_DIO_1                                 4   //NEW
+  // #define RADIO_DIO_1                                 14  //OLD
+  #define RADIO_DIO_1                                 4   //NEW
   #define RADIO_DIO_2                                 
   #define RADIO_DIO_3                                                             
 

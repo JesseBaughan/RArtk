@@ -25,7 +25,7 @@
 */
 //**************************************************************************
 
-#define HOOKMODULE
+// #define HOOKMODULE
 
 struct rawOrient orient;
 
@@ -386,6 +386,7 @@ void loop() {
         recvBuff.newData = false;     // Potential clash with interrupt???
         receiving = true;
         timer_started = false;
+        Serial.println(recvBuff.data[1]);
 
         UpdateDisplay();
       
@@ -566,11 +567,16 @@ uint8_t chksum8(uint8_t number, size_t len) {
 
 void UpdateDisplay(){
   int8_t rxData = recvBuff.data[2];
-  float horizDist = (float)rxData / 10;  //convert the data back to float
+  float data = (float)rxData / 10;  //convert the data back to float
 
   switch (recvBuff.data[1]) {
+  case RTK_STATE:
+// state = cal_complete;
+    LCD.capacity(data);
+    break;
   case NOT_CAL:
     state = no_cal;
+    // Serial.println("inaisw NOTCAL");
     LCD.NotCalibrated();
     break;
   case CAL_IN_PROG:
@@ -581,7 +587,8 @@ void UpdateDisplay(){
     state = cal_complete;
     if (receiveReady) {
       receiveReady = false;
-      LCD.moveMarker(horizDist);
+      // Serial.println("inside if");
+      LCD.moveMarker(data);
       receiveReady = true;
     }   
     break;
