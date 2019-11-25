@@ -120,6 +120,7 @@ void SX126xInit( DioIrqHandler dioIrq )
     // Serial.println(error.Fields.PllLock);
     // Serial.println(error.Fields.BuckStart);
     // SX126xClearDeviceErrors();
+    // OperatingMode = MODE_STDBY_XOSC;
 #else
 
     calibParam.Value = 0x7F;
@@ -127,7 +128,7 @@ void SX126xInit( DioIrqHandler dioIrq )
     OperatingMode = MODE_STDBY_RC;
 
 #endif
-    OperatingMode = MODE_STDBY_XOSC;
+    
     
     
 }

@@ -25,6 +25,8 @@
 */
 //**************************************************************************
 
+#define HOOKMODULE
+
 struct rawOrient orient;
 
 struct rxStruct {
@@ -71,14 +73,17 @@ unsigned long currentTime = 0;
 double horiz_dist = 0; 
 //portMUX_TYPE LEDMux = portMUX_INITIALIZER_UNLOCKED; //Used for syncronization with main loop
 
+
+
 //Used to store incoming data from the RTK module
-char char_buffer[72];
+uint8_t char_buffer[72];
 
 //Instantiate objects
 ST7735 LCD; 
 TaskHandle_t displayTask, TaskA;
 LSM303C myIMU;
-SoftwareSerial mySerial;
+// Software Serial on pins 18 and 23
+SoftwareSerial mySerial(18, 23); // RX, TX
 
 //Not working for some reason...
 void CalibrateIMU_ISR()
@@ -163,14 +168,14 @@ void setup() {
     Serial.println("LORA Tx config set");
 
     //Setup IMU sampling on core 0 
-    xTaskCreatePinnedToCore(
-      Task1,                  /* pvTaskCode */
-      "Workload",            /* pcName */
-      4096,                   /* usStackDepth */
-      NULL,                   /* pvParameters */
-      1,                      /* uxPriority */
-      &TaskA,                 /* pxCreatedTask */
-      0);                     /* xCoreID */
+    // xTaskCreatePinnedToCore(
+    //   Task1,                  /* pvTaskCode */
+    //   "Workload",            /* pcName */
+    //   4096,                   /* usStackDepth */
+    //   NULL,                   /* pvParameters */
+    //   1,                      /* uxPriority */
+    //   &TaskA,                 /* pxCreatedTask */
+    //   0);                     /* xCoreID */
 
   #else
     int timerAlarmPeriod_ms = 1000000;  //5 seconds
@@ -208,8 +213,27 @@ void setup() {
 }
 
 void loop() {
-  // BEGIN GPS SERIAL
+  
 
+
+  // int chrgState = digitalRead(BATT_CHG);
+  // Serial.println(chrgState);
+  // delay(500);
+  //NEED PCB MOD AS OUPUT V FROM CHRG CHIP NOT HIGH ENOUGH 
+  // if (battCharging) {
+  //   digitalWrite(LED_P, !digitalRead(LED_P));
+  //   delay(1000); //Flash led slowly when charging
+  //   Serial.println(20);
+  //   Serial.println(battCharging);
+  //   battCharging = !digitalRead(BATT_CHG); //Check if the battery is charging, low means it is charging
+  // }
+
+  // else {
+    #ifdef HOOKMODULE
+      CheckCalButtonState(!digitalRead(CALIBRATE)); //At some point we should be able to replace with ISR
+
+        // BEGIN GPS SERIAL
+    // Serial.write("test");
     while(!mySerial.available()); // wait for the serial port to send data
     uint8_t incomingByte1 = mySerial.read();
 //    Serial.println(incomingByte1);
@@ -340,22 +364,6 @@ void loop() {
       
     }
     // END GPS SERIAL
-
-  // int chrgState = digitalRead(BATT_CHG);
-  // Serial.println(chrgState);
-  // delay(500);
-  //NEED PCB MOD AS OUPUT V FROM CHRG CHIP NOT HIGH ENOUGH 
-  // if (battCharging) {
-  //   digitalWrite(LED_P, !digitalRead(LED_P));
-  //   delay(1000); //Flash led slowly when charging
-  //   Serial.println(20);
-  //   Serial.println(battCharging);
-  //   battCharging = !digitalRead(BATT_CHG); //Check if the battery is charging, low means it is charging
-  // }
-
-  // else {
-    #ifdef HOOKMODULE
-      CheckCalButtonState(!digitalRead(CALIBRATE)); //At some point we should be able to replace with ISR
 
       //Send IMU data if timer interrupt has occured - which is every 300ms
       if (interruptCounter > 0) {
@@ -690,26 +698,26 @@ void updateBattLevelIndicator(float battVoltage) {
 
 //************************************************CORE 0 TASKs*****************************************************
 //Task running on core 0
-void Task1( void * parameter ) {
-  uint32_t imuStabilseTime_ms = 40000; //update at 200Hz
+// void Task1( void * parameter ) {
+//   uint32_t imuStabilseTime_ms = 40000; //update at 200Hz
 
-  for (;;) { 
-    if((millis() > imuStabilseTime_ms) && calibrateRequested) {
-      calibrateRequested = false; 
-      CalibrateIMU();  
-      state = cal_complete;
-    }
-    else {
-      updateOrientation(true);
-      delay(5);
-    } 
-  }
+//   for (;;) { 
+//     if((millis() > imuStabilseTime_ms) && calibrateRequested) {
+//       calibrateRequested = false; 
+//       CalibrateIMU();  
+//       state = cal_complete;
+//     }
+//     else {
+//       updateOrientation(true);
+//       delay(5);
+//     } 
+//   }
 //Smooths the angle data using a moving average filter
 //Smooths the angle data using a moving average filter
 //Smooths the angle data using a moving average filter
 
-  return;
-}
+//   return;
+// }
 
 void AmbientLightAdjust() {
   digitalWrite(LED_P, LOW);
