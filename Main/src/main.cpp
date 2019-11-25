@@ -77,6 +77,8 @@ double horiz_dist = 0;
 
 //Used to store incoming data from the RTK module
 uint8_t char_buffer[72];
+uint8_t fix_type;
+uint8_t fix_counter = 0;
 
 //Instantiate objects
 ST7735 LCD; 
@@ -156,7 +158,7 @@ void setup() {
 
   #ifdef HOOKMODULE
     int timerAlarmPeriod_ms = 300000;   //300ms
-    state = no_cal;
+    state = cal_complete;
     //attachInterrupt(CALIBRATE, CalibrateIMU_ISR, LOW); Interrupt not working, possibly no interupts connected to pin SENSOR_CAPP
     // attachInterrupt(BATT_CHG, BattCharging_ISR, LOW); 
     digitalWrite(LED_P, HIGH); //LED on when setting up, flashing when running
@@ -277,12 +279,16 @@ void loop() {
                   Serial.print("Fix Type: ");
                   if(incomingByte1 == 0x34){
                     Serial.println("Fixed RTK");
+                    fix_type = 4;
                   } else if(incomingByte1 == 0x35){
                     Serial.println("Float RTK");
+                    fix_type = 5;
                   } else if(incomingByte1 == 0x31){
                     Serial.println("GPS only - No RTK");
+                    fix_type = 1;
                   } else if(incomingByte1 == 0x30){
                     Serial.println("No GPS Fix");
+                    fix_type = 0;
                   } else {
                     Serial.println("Error");
                   }
@@ -453,25 +459,44 @@ uint8_t PackSendBits(float inputData) {
 }
 
 void AssignTxBufferContents() {
-  switch (state) {
-  case cal_in_progress:
-    txBuff.raPacket.ctrl = CAL_IN_PROG; 
-    break;
-  case cal_complete:
-    txBuff.raPacket.ctrl = CAL_COMPLETE;
-    break;
-  case no_cal:
-    txBuff.raPacket.ctrl = NOT_CAL;
-    break;
 
-  default:
-    break;
+  // FIELD TEST
+  uint8_t packedIMUData;
+  fix_counter++;
+  if (fix_counter > 3){
+    fix_counter = 0;
+    // state = rtk_state;
+    txBuff.raPacket.ctrl = RTK_STATE;
+    packedIMUData = PackSendBits(fix_type);
+    // END FIELD TEST
   }
-  //Should we put this in the if statement so data is only assigned when radio ready to send?
-  uint8_t packedIMUData = PackSendBits(horiz_dist);
+  else {
+    switch (state) {
+    // case rtk_state:
+    //   txBuff.raPacket.ctrl = RTK_STATE;
+    //   break;
+    case cal_in_progress:
+      txBuff.raPacket.ctrl = CAL_IN_PROG; 
+      break;
+    case cal_complete:
+      txBuff.raPacket.ctrl = CAL_COMPLETE;
+      break;
+    case no_cal:
+      txBuff.raPacket.ctrl = NOT_CAL;
+      break;
+      
+
+    default:
+      break;
+    }
+  
+    //Should we put this in the if statement so data is only assigned when radio ready to send?
+    packedIMUData = PackSendBits(horiz_dist);
+  }
   uint8_t checkSum = chksum8(packedIMUData, 8);
   txBuff.raPacket.data = packedIMUData;
   txBuff.raPacket.chksum = checkSum; //send an additional cehcksum 
+  
 }
 
 void SendDataPacket() {
@@ -656,7 +681,7 @@ void CheckCalButtonState(uint8_t reading) {
         // only toggle the cal state if the new button state is HIGH
         if (buttonState == HIGH) {
           calibrateRequested = true;
-          state = cal_in_progress;
+          // state = cal_in_progress;
           #ifdef DEBUG_IMU_ANGLES
             Serial.println("Calibration requested");
           #endif 
@@ -666,7 +691,7 @@ void CheckCalButtonState(uint8_t reading) {
       }
     }
   lastButtonState = reading;
-
+  state = cal_complete;
   return;
 }
 
@@ -679,6 +704,8 @@ void updateBattLevelIndicator(float battVoltage) {
   int battLevel = 0;
 //  Serial.print("Batt voltage: ");
 //  Serial.println(battVoltage);
+  LCD.capacity(fix_type);
+
 
   if (battVoltage > 1.5) {
     battLevel = 3;

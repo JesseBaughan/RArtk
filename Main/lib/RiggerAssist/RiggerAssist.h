@@ -41,14 +41,14 @@ LORA. */
 
 // LoRa setup - see board.h and ensure pins are updated there as well
 #define LORA_NSS    15
-#define LORA_SCK    14    //NEW BOARD
-// #define LORA_SCK    4       // Old board
+// #define LORA_SCK    14    //NEW BOARD
+#define LORA_SCK    4       // Old board
 #define LORA_MOSI   13
 #define LORA_MISO   12
 //#define LORA_RST    
 #define LORA_BUSY   19
-#define LORA_DIO1   4     // New board
-// #define LORA_DIO1   14      // Old board
+// #define LORA_DIO1   4     // New board
+#define LORA_DIO1   14      // Old board
 //#define LORA_FREQ   915E6           // 915Mhz
 #define LORA_ADDRESS  0xA6          // Rigger Assist network address
 
@@ -69,6 +69,7 @@ LORA. */
 #define BATTSTATUS          5
 #define BINDING             4
 #define CAL_COMPLETE        3
+#define RTK_STATE          2
 
 // uint8_t dischargeCurve(uint8_t pec)
 // {
