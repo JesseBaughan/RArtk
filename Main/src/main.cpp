@@ -25,7 +25,7 @@
 */
 //**************************************************************************
 
-// #define HOOKMODULE
+#define HOOKMODULE
 
 struct rawOrient orient;
 
@@ -79,6 +79,8 @@ double horiz_dist = 0;
 uint8_t char_buffer[72];
 uint8_t fix_type;
 uint8_t fix_counter = 0;
+int num_samples = 0;
+double average_buffer[60];
 
 //Instantiate objects
 ST7735 LCD; 
@@ -127,14 +129,14 @@ void setup() {
 
   //GPS SERIAL
   // Open serial communications and wait for port to open:
-  Serial.begin(19200);
+  Serial.begin(57600);
   while (!Serial) {
     ; // wait for serial port to connect. Needed for Native USB only
   }
   Serial.println("All your base are belong to us");
 
   // set the data rate for the SoftwareSerial port
-  mySerial.begin(19200);
+  mySerial.begin(57600);
   // seb comment out
   // Serial.begin(115200);
   // while (!Serial);                                // Wait for serial to start
@@ -273,6 +275,15 @@ void loop() {
                       comma_counter++;
                     }
                   }
+                  // 0 = invalid
+                  // 1 = GPS fix (SPS)
+                  // 2 = DGPS fix
+                  // 3 = PPS fix
+                  // 4 = Real Time Kinematic
+                  // 5 = Float RTK
+                  // 6 = estimated (dead reckoning) (2.3 feature)
+                  // 7 = Manual input mode
+                  // 8 = Simulation mode
                   // read the next byte, which should be the fix type:
                   while(!mySerial.available());
                   incomingByte1 = mySerial.read();
@@ -289,7 +300,24 @@ void loop() {
                   } else if(incomingByte1 == 0x30){
                     Serial.println("No GPS Fix");
                     fix_type = 0;
-                  } else {
+                  } else if(incomingByte1 == 0x32){
+                    Serial.println("DPGS Fix");
+                    fix_type = 2;
+                  } else if(incomingByte1 == 0x33){
+                    Serial.println("PPS Fix");
+                    fix_type = 3;
+                  } else if(incomingByte1 == 0x36){
+                    Serial.println("Est Dead Reckoning");
+                    fix_type = 6;
+                  } else if(incomingByte1 == 0x37){
+                    Serial.println("Manual Input");
+                    fix_type = 7;
+                  } else if(incomingByte1 == 0x38){
+                    Serial.println("Simulation");
+                    fix_type = 8;
+                  }
+                  
+                  else {
                     Serial.println("Error");
                   }
 //                  Serial.println((char) incomingByte1);
@@ -353,6 +381,41 @@ void loop() {
             Serial.print("Horizontal Displacement: ");
             Serial.print(horiz_dist,4);
             Serial.println(" m");
+
+            // ONLY DO AVERAGE IF HAS FLOAT OR FIX LOCK
+            if (fix_type == 4 || fix_type == 5){
+
+              // AVERAGE SAMPLE 60
+              if (num_samples < 60){
+                num_samples++;
+              }
+              for (int k = 59; k > 0; k--){        
+                average_buffer[k] = average_buffer[k-1];
+              }
+              average_buffer[0] = horiz_dist;
+              double sum_average = 0;
+              for (int i = 0; i < 60; i++){
+                sum_average += average_buffer[i];
+              }
+              double average_dist = sum_average / (double) num_samples;
+              Serial.print("Average: ");
+              Serial.println(average_dist,4);
+
+              // MIN MAX AVERAGE
+              double min = average_buffer[0];
+              double max = average_buffer[0];
+              for (int z = 1; z < num_samples; z++){
+                if (average_buffer[z] > max){
+                  max = average_buffer[z];
+                }
+                if (average_buffer[z] < min){
+                  min = average_buffer[z];
+                }
+              }
+              double minmaxmean = (min + max) / 2.0;
+              Serial.print("MinMaxMean: ");
+              Serial.println(minmaxmean);
+            }
 
             // reset the character buffer
             for (int k = 0; k < 72; k++){
@@ -506,7 +569,7 @@ void SendDataPacket() {
     //start = millis(); //Used to time lora send 
     sendReady = false;
     Radio.Send(txBuff.txArr, PACKET_SIZE); 
-    Serial.println("TX");     
+    // Serial.println("TX");     
   }
   flashLED(state);
 }
