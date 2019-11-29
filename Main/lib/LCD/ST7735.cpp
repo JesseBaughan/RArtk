@@ -156,9 +156,9 @@ void ST7735::radioStrength(int str) {
 //What is capacity - batt percentage
 void ST7735::capacity(int cap) {
   tft.setFont(&FreeSans9pt7b);
-  sprintf(s2, "%i%%", cap);
-  tft.fillRect(12, 0, 37, 14, ST77XX_BLACK);      // clear old text
-  drawText(s2, 1, 12, 13, ST77XX_CYAN);
+  sprintf(s2, "%i%", cap);
+  tft.fillRect(24, 0, 37, 14, ST77XX_BLACK);      // clear old text // x initially 12
+  drawText(s2, 1, 24, 13, ST77XX_CYAN); // x initially 12, changed to 24 for fix type field testing
   tft.setFont(&FreeSansBold18pt7b);
 }
 

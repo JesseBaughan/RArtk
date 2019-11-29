@@ -25,7 +25,7 @@
 */
 //**************************************************************************
 
-#define HOOKMODULE
+// #define HOOKMODULE
 
 struct rawOrient orient;
 
@@ -54,7 +54,7 @@ int totalInterruptCounter; //Used in main loop thus doesn't need volatile
 hw_timer_t * timer = NULL;  //required to setup the timer
 portMUX_TYPE timerMux = portMUX_INITIALIZER_UNLOCKED; //Used for syncronization with main loop
 
-enum State {no_cal, cal_in_progress, cal_complete};
+enum State {no_cal, cal_in_progress, cal_complete, rtk_state};
 uint8_t state;
 bool calibrateRequested = false;
 bool battCharging = false;
@@ -81,6 +81,8 @@ uint8_t fix_type;
 uint8_t fix_counter = 0;
 int num_samples = 0;
 double average_buffer[60];
+
+long timeout_startTime = 0;
 
 //Instantiate objects
 ST7735 LCD; 
@@ -130,9 +132,9 @@ void setup() {
   //GPS SERIAL
   // Open serial communications and wait for port to open:
   Serial.begin(57600);
-  while (!Serial) {
-    ; // wait for serial port to connect. Needed for Native USB only
-  }
+  // while (!Serial) {
+  //   ; // wait for serial port to connect. Needed for Native USB only
+  // }
   Serial.println("All your base are belong to us");
 
   // set the data rate for the SoftwareSerial port
@@ -450,6 +452,10 @@ void loop() {
         receiving = true;
         timer_started = false;
         Serial.println(recvBuff.data[1]);
+        Serial.println(recvBuff.data[2]);
+        if(recvBuff.data[1] == RTK_STATE){
+          fix_type = recvBuff.data[2];
+        }
 
         UpdateDisplay();
       
@@ -531,14 +537,17 @@ void AssignTxBufferContents() {
     fix_counter = 0;
     // state = rtk_state;
     txBuff.raPacket.ctrl = RTK_STATE;
-    packedIMUData = PackSendBits(fix_type);
+    // packedIMUData = PackSendBits(fix_type);
+    packedIMUData = fix_type;
+    Serial.println(packedIMUData);
     // END FIELD TEST
   }
   else {
+    state = cal_complete;
     switch (state) {
-    // case rtk_state:
-    //   txBuff.raPacket.ctrl = RTK_STATE;
-    //   break;
+    case rtk_state:
+      txBuff.raPacket.ctrl = RTK_STATE;
+      break;
     case cal_in_progress:
       txBuff.raPacket.ctrl = CAL_IN_PROG; 
       break;
@@ -634,12 +643,11 @@ void UpdateDisplay(){
 
   switch (recvBuff.data[1]) {
   case RTK_STATE:
-// state = cal_complete;
-    LCD.capacity(data);
+    state = cal_complete;
+    LCD.capacity(rxData);
     break;
   case NOT_CAL:
     state = no_cal;
-    // Serial.println("inaisw NOTCAL");
     LCD.NotCalibrated();
     break;
   case CAL_IN_PROG:
@@ -688,7 +696,7 @@ void SetSigStrengthIndicator() {
 }
 
 void UpdateDispOnRxTimeout(){
-  static unsigned long timeout_startTime = 0;
+  // static unsigned long timeout_startTime = 0;
   static float timeoutDuration = 3000; //3000ms = 3 seconds
 
   if (timer_started == false) {
