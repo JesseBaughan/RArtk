@@ -129,8 +129,6 @@ void SX126xInit( DioIrqHandler dioIrq )
 
 #endif
     
-    
-    
 }
 
 RadioOperatingModes_t SX126xGetOperatingMode( void )
