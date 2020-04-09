@@ -77,7 +77,7 @@ double horiz_dist = 0;
 
 //Used to store incoming data from the RTK module
 uint8_t char_buffer[72];
-uint8_t fix_type;
+char fix_type;
 uint8_t fix_counter = 0;
 int num_samples = 0;
 double average_buffer[60];
@@ -89,7 +89,7 @@ ST7735 LCD;
 TaskHandle_t displayTask, TaskA;
 LSM303C myIMU;
 // Software Serial on pins 18 and 23
-SoftwareSerial mySerial(18, 23); // RX, TX
+SoftwareSerial GPS_serial(18, 23); // RX, TX
 
 //Not working for some reason...
 void CalibrateIMU_ISR()
@@ -138,7 +138,7 @@ void setup() {
   Serial.println("All your base are belong to us");
 
   // set the data rate for the SoftwareSerial port
-  mySerial.begin(57600);
+  GPS_serial.begin(57600);
   // seb comment out
   // Serial.begin(115200);
   // while (!Serial);                                // Wait for serial to start
@@ -218,6 +218,60 @@ void setup() {
   timerAlarmEnable(timer);  //Start the timer 
 }
 
+void readAllSentences(){
+  char new_sentence[150];
+  memset(new_sentence,0,150);
+//  for (int i = 0; i < 100; i++){
+//    ESP_BT.println("Oh hi there");
+//    delay(500);
+//  }
+  
+//  while(!GPS_serial.available());
+  char incomingByte = GPS_serial.read();
+  if (incomingByte == '$'){
+    new_sentence[0] = incomingByte;
+    int counter = 1;
+    bool end_of_sentence = false;
+    while(!end_of_sentence){
+      while(!GPS_serial.available());
+      incomingByte = GPS_serial.read();
+      new_sentence[counter] = incomingByte;
+      counter++;
+      // end of sentence marked with checksum, starts with * then is two more bytes:
+      if (incomingByte == '*'){
+        end_of_sentence = true;
+        while(!GPS_serial.available());
+        new_sentence[counter] = GPS_serial.read();
+        while(!GPS_serial.available());
+        new_sentence[counter+1] = GPS_serial.read();
+      }
+    }
+    
+    // send the whole sentence
+
+    // Serial.println(new_sentence);
+
+// check if is GGA
+    if (new_sentence[3] == 'G' && new_sentence[4] == 'G' && new_sentence[5] == 'A'){
+      // need to filter past a certain number of , to find the fix type, 6 of them
+      int comma = 0;
+      for (int i = 0; i < 100; i++){
+        if(new_sentence[i] == ','){
+          comma++;
+          if (comma == 6){
+            fix_type = (char)new_sentence[i+1];
+            i = 100;
+            Serial.println("0 = No GPS, 1 = GPS, 2 = RTK");
+            Serial.print("Fix Type: ");
+            Serial.println(fix_type);
+          }
+        }
+      }
+    }
+  }
+}
+
+
 void loop() {
   
 
@@ -240,39 +294,41 @@ void loop() {
 
         // BEGIN GPS SERIAL
     // Serial.write("test");
-    while(!mySerial.available()); // wait for the serial port to send data
-    uint8_t incomingByte1 = mySerial.read();
+    readAllSentences();
+    /*
+    while(!GPS_serial.available()); // wait for the serial port to send data
+    uint8_t incomingByte1 = GPS_serial.read();
 //    Serial.println(incomingByte1);
     // for the GGA, we want this as the start: 24 2d 2d 47 47 41
         if(incomingByte1 == 0x24){
-       Serial.print("1");
-        while(!mySerial.available());
-        incomingByte1 = mySerial.read();
+      //  Serial.print("1");
+        while(!GPS_serial.available());
+        incomingByte1 = GPS_serial.read();
 //        Serial.write(incomingByte1);
         if (incomingByte1 == 0x47){
-         Serial.print("2");
-          while(!mySerial.available());
-          incomingByte1 = mySerial.read();
+        //  Serial.print("2");
+          while(!GPS_serial.available());
+          incomingByte1 = GPS_serial.read();
           if (incomingByte1 == 0x4E){
-           Serial.print("3");
-            while(!mySerial.available());
-            incomingByte1 = mySerial.read();
+          //  Serial.print("3");
+            while(!GPS_serial.available());
+            incomingByte1 = GPS_serial.read();
             if (incomingByte1 == 0x47){
-             Serial.print("4");
-              while(!mySerial.available());
-              incomingByte1 = mySerial.read();
+            //  Serial.print("4");
+              while(!GPS_serial.available());
+              incomingByte1 = GPS_serial.read();
               if (incomingByte1 == 0x47){
-//                Serial.print("5");
-                while(!mySerial.available());
-                incomingByte1 = mySerial.read();
+              //  Serial.print("5");
+                while(!GPS_serial.available());
+                incomingByte1 = GPS_serial.read();
                 if (incomingByte1 == 0x41){
-//                  Serial.print("6");
+                //  Serial.print("6");
                   // then we want to wait after 5 "," pass, or 0x2c, then read the next byte.
                   // It will contain the fix type. 4: RTK FIXED, 5: RTK FLOAT
                   uint8_t comma_counter = 0;
                   while (comma_counter < 6){
-                    while(!mySerial.available());
-                    incomingByte1 = mySerial.read();
+                    while(!GPS_serial.available());
+                    incomingByte1 = GPS_serial.read();
                     if (incomingByte1 == 0x2C){
                       comma_counter++;
                     }
@@ -287,8 +343,8 @@ void loop() {
                   // 7 = Manual input mode
                   // 8 = Simulation mode
                   // read the next byte, which should be the fix type:
-                  while(!mySerial.available());
-                  incomingByte1 = mySerial.read();
+                  while(!GPS_serial.available());
+                  incomingByte1 = GPS_serial.read();
                   Serial.print("Fix Type: ");
                   if(incomingByte1 == 0x34){
                     Serial.println("Fixed RTK");
@@ -329,27 +385,28 @@ void loop() {
             }
           }
         }
-      }
+      }*/
+      /*
       
     if (incomingByte1 == 0xB5){
-        while(!mySerial.available());
-        uint8_t incomingByte2 = mySerial.read();
+        while(!GPS_serial.available());
+        uint8_t incomingByte2 = GPS_serial.read();
         if (incomingByte2 == 0x62){
-          while(!mySerial.available());
-          uint8_t incomingByte3 = mySerial.read();
+          while(!GPS_serial.available());
+          uint8_t incomingByte3 = GPS_serial.read();
           if (incomingByte3 == 0x01){
-            while(!mySerial.available());
-            uint8_t incomingByte4 = mySerial.read();
+            while(!GPS_serial.available());
+            uint8_t incomingByte4 = GPS_serial.read();
             if (incomingByte4 == 0x3C){
         
-        while(!mySerial.available());
+        while(!GPS_serial.available());
             char_buffer[0] = incomingByte1;
             char_buffer[1] = incomingByte2;
             char_buffer[2] = incomingByte3;
             char_buffer[3] = incomingByte4;
             for (int i = 4; i < 72; i++){
-              while(!mySerial.available());
-              char_buffer[i] = mySerial.read();
+              while(!GPS_serial.available());
+              char_buffer[i] = GPS_serial.read();
             }
 
             Serial.println("");
@@ -434,6 +491,7 @@ void loop() {
         
       
     }
+    */
     // END GPS SERIAL
 
       //Send IMU data if timer interrupt has occured - which is every 300ms
@@ -539,6 +597,7 @@ void AssignTxBufferContents() {
     txBuff.raPacket.ctrl = RTK_STATE;
     // packedIMUData = PackSendBits(fix_type);
     packedIMUData = fix_type;
+    Serial.print("Packed IMU Data: ");
     Serial.println(packedIMUData);
     // END FIELD TEST
   }
