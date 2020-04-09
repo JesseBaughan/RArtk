@@ -25,7 +25,7 @@
 */
 //**************************************************************************
 
-// #define HOOKMODULE
+#define HOOKMODULE
 
 struct rawOrient orient;
 
@@ -131,7 +131,7 @@ void setup() {
 
   //GPS SERIAL
   // Open serial communications and wait for port to open:
-  Serial.begin(57600);
+  Serial.begin(115200);
   // while (!Serial) {
   //   ; // wait for serial port to connect. Needed for Native USB only
   // }
@@ -245,20 +245,20 @@ void loop() {
 //    Serial.println(incomingByte1);
     // for the GGA, we want this as the start: 24 2d 2d 47 47 41
         if(incomingByte1 == 0x24){
-//        Serial.print("1");
+       Serial.print("1");
         while(!mySerial.available());
         incomingByte1 = mySerial.read();
 //        Serial.write(incomingByte1);
         if (incomingByte1 == 0x47){
-//          Serial.print("2");
+         Serial.print("2");
           while(!mySerial.available());
           incomingByte1 = mySerial.read();
           if (incomingByte1 == 0x4E){
-//            Serial.print("3");
+           Serial.print("3");
             while(!mySerial.available());
             incomingByte1 = mySerial.read();
             if (incomingByte1 == 0x47){
-//              Serial.print("4");
+             Serial.print("4");
               while(!mySerial.available());
               incomingByte1 = mySerial.read();
               if (incomingByte1 == 0x47){
@@ -521,7 +521,7 @@ uint8_t PackSendBits(float inputData) {
     packedBits = 12;
   }
   else {
-    roundedVal = (uint8_t)(inputData * 10 + 0.5);  //Convert float to uint8_t and add 2nd decimal place rounding
+    roundedVal = (uint8_t)(inputData * 100 + 0.5);  //Convert float to uint8_t and add 2nd decimal place rounding
     packedBits = roundedVal;
   }
 
@@ -639,7 +639,7 @@ uint8_t chksum8(uint8_t number, size_t len) {
 
 void UpdateDisplay(){
   int8_t rxData = recvBuff.data[2];
-  float data = (float)rxData / 10;  //convert the data back to float
+  float data = (float)rxData / 100;  //convert the data back to float
 
   switch (recvBuff.data[1]) {
   case RTK_STATE:
