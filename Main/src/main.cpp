@@ -124,6 +124,7 @@ duration = currentTime - startTime;
 void IRAM_ATTR onTimer() {
   portENTER_CRITICAL_ISR(&timerMux);
   interruptCounter++;
+  fix_counter++;
   portEXIT_CRITICAL_ISR(&timerMux);
 }
 
@@ -162,7 +163,6 @@ void setup() {
 
   #ifdef HOOKMODULE
     int timerAlarmPeriod_ms = 300000;   //300ms
-    state = cal_complete;
     //attachInterrupt(CALIBRATE, CalibrateIMU_ISR, LOW); Interrupt not working, possibly no interupts connected to pin SENSOR_CAPP
     // attachInterrupt(BATT_CHG, BattCharging_ISR, LOW); 
     digitalWrite(LED_P, HIGH); //LED on when setting up, flashing when running
@@ -215,7 +215,9 @@ void setup() {
   timer = timerBegin(0, 80, true);  //Apply prescalar so we can work in uS
   timerAttachInterrupt(timer, &onTimer, true);
   timerAlarmWrite(timer, timerAlarmPeriod_ms, true); //Trigger ISR every 5 seconds = 15000000uS (used for batt voltage check)
-  timerAlarmEnable(timer);  //Start the timer 
+  timerAlarmEnable(timer);  //Start the timeroo
+
+  state = no_cal; 
 }
 
 void readAllSentences(){
@@ -273,9 +275,6 @@ void readAllSentences(){
 
 
 void loop() {
-  
-
-
   // int chrgState = digitalRead(BATT_CHG);
   // Serial.println(chrgState);
   // delay(500);
@@ -494,6 +493,13 @@ void loop() {
     */
     // END GPS SERIAL
 
+      //Set the system state
+      if (fix_counter > 3) {
+        fix_counter = 0;
+        state = RTK_STATE;
+      }else if (fix_type == 44) {
+        state = CAL_COMPLETE;
+      }
       //Send IMU data if timer interrupt has occured - which is every 300ms
       if (interruptCounter > 0) {
         portENTER_CRITICAL(&timerMux);
@@ -509,8 +515,9 @@ void loop() {
         recvBuff.newData = false;     // Potential clash with interrupt???
         receiving = true;
         timer_started = false;
+        Serial.print("The received state is: ");
         Serial.println(recvBuff.data[1]);
-        Serial.println(recvBuff.data[2]);
+
         if(recvBuff.data[1] == RTK_STATE){
           fix_type = recvBuff.data[2];
         }
@@ -587,8 +594,6 @@ uint8_t PackSendBits(float inputData) {
 }
 
 void AssignTxBufferContents() {
-
-  // FIELD TEST
   uint8_t packedIMUData;
   fix_counter++;
   if (fix_counter > 3){
@@ -603,8 +608,15 @@ void AssignTxBufferContents() {
   }
   else {
     state = cal_complete;
+
+  //Every 900ms send the RTK state: fixed/float
     switch (state) {
     case rtk_state:
+      if (fix_type == 4){
+        state = CAL_COMPLETE;
+      } else {
+        state = NOT_CAL;
+      }
       txBuff.raPacket.ctrl = RTK_STATE;
       break;
     case cal_in_progress:
@@ -617,14 +629,11 @@ void AssignTxBufferContents() {
       txBuff.raPacket.ctrl = NOT_CAL;
       break;
       
-
     default:
       break;
     }
   
-    //Should we put this in the if statement so data is only assigned when radio ready to send?
-    packedIMUData = PackSendBits(horiz_dist);
-  }
+  packedIMUData = PackSendBits(4.0);
   uint8_t checkSum = chksum8(packedIMUData, 8);
   txBuff.raPacket.data = packedIMUData;
   txBuff.raPacket.chksum = checkSum; //send an additional cehcksum 
@@ -632,14 +641,31 @@ void AssignTxBufferContents() {
 }
 
 void SendDataPacket() {
+  RadioError_t error;
+  RadioStatus_t status;
   AssignTxBufferContents();
+
   if (sendReady) {
     //start = millis(); //Used to time lora send 
     sendReady = false;
     Radio.Send(txBuff.txArr, PACKET_SIZE); 
-    // Serial.println("TX");     
+    Serial.println("TX");     
+
   }
-  flashLED(state);
+    error = SX126xGetDeviceErrors();
+    status = SX126xGetStatus();
+    Serial.print("The status is: ");
+    Serial.println(status.Value);
+    Serial.print("The error returned is: ");
+    Serial.println(error.Fields.Rc64kCalib);
+    Serial.println(error.Fields.Rc13mCalib);
+    Serial.println(error.Fields.PllCalib);
+    Serial.println(error.Fields.AdcCalib);
+    Serial.println(error.Fields.ImgCalib);
+    Serial.println(error.Fields.XoscStart);
+    Serial.println(error.Fields.PllLock);
+    Serial.println(error.Fields.BuckStart);
+    flashLED(state);
 }
 
 // Receive interrupt, copy over data received. Are we using this properly??
@@ -702,7 +728,6 @@ void UpdateDisplay(){
 
   switch (recvBuff.data[1]) {
   case RTK_STATE:
-    state = cal_complete;
     LCD.capacity(rxData);
     break;
   case NOT_CAL:
@@ -717,7 +742,6 @@ void UpdateDisplay(){
     state = cal_complete;
     if (receiveReady) {
       receiveReady = false;
-      // Serial.println("inside if");
       LCD.moveMarker(data);
       receiveReady = true;
     }   
@@ -903,8 +927,8 @@ void AmbientLightAdjust() {
   }
   ledcWrite(PWM_CHANNEL, adjAmb); // LED brightness 0 to 255
 
-  Serial.print(duration);
-  Serial.print(" ");
-  Serial.println(adjAmb);
+  // Serial.print(duration);
+  // Serial.print(" ");
+  // Serial.println(adjAmb);
   pinMode(LED_N, OUTPUT);
 }
